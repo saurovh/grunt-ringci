@@ -451,6 +451,10 @@ function exportTask(grunt) {
             if (filename === options.settingsFile) {
                 content = updateSettings(content);
             }
+            // update protocol
+            if (filename.indexOf(options.protocolFixFiles) > -1) {
+                content = updateSettings(content, true);
+            }
 
             // templateURL replace
             if (options.templateReplaceFiles.indexOf(filename) > -1) {
@@ -515,11 +519,13 @@ function exportTask(grunt) {
             return updatedContent;
         }
 
-        function updateSettings(content) {
+        function updateSettings(content, protocolOnly) {
             var i,
                 updatedContent = String(content),
-                searches = [/(apiVersion\s*:\s*[0-9]+)/g],
-                replaces = ['apiVersion:' + options.apiVersion],
+                // searches = [/(apiVersion\s*:\s*[0-9]+)/g],
+                // replaces = ['apiVersion:' + options.apiVersion],
+                searches = [],
+                replaces = [],
                 protocolSearches,
                 protocolReplaces;
 
@@ -535,14 +541,21 @@ function exportTask(grunt) {
                 protocolReplaces = (options.protocol === 'ssl') ? ['https://', 'wss://'] : ['http://', 'ws://'];
             }
 
+
             searches = searches.concat(protocolSearches);
             replaces = replaces.concat(protocolReplaces);
 
-            searches = searches.concat([/secure\s*:\s*\w+,/]);
-            replaces = replaces.concat(options.protocol === 'ssl' ? ['secure:true,'] : ['secure:false,']);
 
-            searches = searches.concat([/analytics\s*:\s*\w+,/, /debugEnabled\s*:\s*\w+,/]);
-            replaces = replaces.concat(options.target === 'live' ? ['analytics:true,', 'debugEnabled:false,'] : ['analytics:false,', 'debugEnabled:true,']);
+            if (!protocolOnly) {
+                searches = searches.concat([/(apiVersion\s*:\s*[0-9]+)/g]);
+                replaces = replaces.concat(['apiVersion:' + options.apiVersion]);
+
+                searches = searches.concat([/secure\s*:\s*\w+,/]);
+                replaces = replaces.concat(options.protocol === 'ssl' ? ['secure:true,'] : ['secure:false,']);
+
+                searches = searches.concat([/analytics\s*:\s*\w+,/, /debugEnabled\s*:\s*\w+,/]);
+                replaces = replaces.concat(options.target === 'live' ? ['analytics:true,', 'debugEnabled:false,'] : ['analytics:false,', 'debugEnabled:true,']);
+            }
 
             for (i = 0; i < searches.length; i++) {
                 updatedContent = updatedContent.replace(searches[i], replaces[i]);
