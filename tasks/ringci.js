@@ -121,7 +121,7 @@ function exportTask(grunt) {
 
             ringHelper.log('success', 'Uglify', vendorMinFile);
 
-            ringHelper.log('taskend', 'END BUILDING app.vendor.min');
+            ringHelper.log('taskend', 'DONE BUILDING app.vendor.min');
             return true;
         }
 
@@ -341,7 +341,7 @@ function exportTask(grunt) {
                 linkStyles = [stylesMinFile];
             }
 
-            ringHelper.log('taskend', 'END MINIFY STYLESHEETS USING CSSMIN');
+            ringHelper.log('taskend', 'DONE MINIFY STYLESHEETS USING CSSMIN');
             return true;
         }
 
@@ -389,7 +389,7 @@ function exportTask(grunt) {
                 }
             }
 
-            ringHelper.log('taskstart', 'DONE: PREPARE APP SCRIPTS');
+            ringHelper.log('taskend', 'DONE: PREPARE APP SCRIPTS');
             return true;
         }
 
