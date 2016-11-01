@@ -321,7 +321,7 @@ function exportTask(grunt) {
 
             for (i = 0; i < options.appStyles.length; i++) {
                 // cssfile = ringHelper.unixifyPath(options.appStyles[i]);
-                cssfile = options.srcPath + '/' + options.appStyles[i];
+                cssfile = options.publicPath + '/' + options.appStyles[i];
                 ringHelper.log('info', 'prepareCss', 'File: ', cssfile);
                 if (!grunt.file.exists(cssfile)) {
                     ringHelper.log('error', 'File', cssfile, ' Not Found');
@@ -331,7 +331,7 @@ function exportTask(grunt) {
                 if (options.minifyStyles) {
                     minifiedStyle += String(grunt.file.read(cssfile, { encoding: 'utf8' }));
                 } else {
-                    linkStyles.push(cssfile.replace(options.srcPath, ''));
+                    linkStyles.push(cssfile.replace(options.publicPath, ''));
                 }
             }
 
