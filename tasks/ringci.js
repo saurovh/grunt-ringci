@@ -255,6 +255,7 @@ function exportTask(grunt) {
                 grunt.file.write(files[i].replace(options.srcPath, options.publicPath), minifiedContent);
             }
             ringHelper.log('taskend', 'Prepare Root Templates, link css,js and minify');
+            return true;
         }
 
         function linkHtmlCss(templateContent) {
