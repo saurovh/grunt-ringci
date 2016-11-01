@@ -17,51 +17,59 @@ function exportTask(grunt) {
     grunt.registerMultiTask('ringci', 'Custom Build for ringWEB', ringci);
 
     function ringci() {
-        var jsPath = '',
-            cssPath = '',
-           // VENDOR_SCRIPTS = [],
+        var taskSuccess,
+            jsPath = '',
             SCRIPT_FILES = [],
             linkScripts = [],
+            linkStyles = [],
             // STYLE_SHEETS = [],
             // srcFiles = [],
     // Merge task-specific and/or target-specific options with these defaults.
             options = this.options({
-                // punctuation: '.',
-                // separator: ', ',
-                // target: 'dev',
-                // protocol: 'nonssl',
-                // apiversion: '145',
-                // branch: 'master',
+                punctuation: '.',
+                separator: ', ',
             }),
             fs = require('fs'),
             Crypto = require('crypto'),
             Path = require('path'),
+            cssmin = require('cssmin'),
             ringHelper = require('./lib/helpers').init(grunt, options);
 
         jsPath = options.minifyScripts === true ? '/js/' : '/js/build/';
-        cssPath = options.minifyStyles === true ? '/css/styles.min.css' : '/css/styles.css';
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
         // main tasks 4 sets of files to watch for
         // 1. minify partial templates
-        prepareHtml();
+        taskSuccess = prepareHtml();
         // 2. prepare js files
             // copy files, run operations(remove debug code, update settings, minify), write to js directory
-        prepareJS();
-        prepareVendorScripts();
+        if (taskSuccess) {
+            taskSuccess = prepareJS();
+        }
+
+        if (taskSuccess) {
+            taskSuccess = prepareVendorScripts();
+        }
         // 3. prepare css files
         // // run sass and write to css directory
-        // prepareCss();
+        if (taskSuccess) {
+            taskSuccess = prepareCss();
+        }
         // 4. prepare root template files and link if necessary
-        prepareRootTemplates();
+        if (taskSuccess) {
+            taskSuccess = prepareRootTemplates();
+        }
         // // link css and js files and then write to public directory
         // 5. worker files
         // // importscript replace with file content and minify and write to js/worker directory
-        prepareWorkerFiles();
+        if (taskSuccess) {
+            taskSuccess = prepareWorkerFiles();
+        }
         // for chat workers, copy and minify if necessary
-        prepareChatWorkers();
-
+        if (taskSuccess) {
+            taskSuccess = prepareChatWorkers();
+        }
 
 
         function prepareVendorScripts() {
@@ -125,6 +133,8 @@ function exportTask(grunt) {
                 dest,
                 j,
                 i;
+
+            ringHelper.log('taskstart', 'Copy Chat worker files');
             for (i = 0; i < options.chatWorkers.length; i++) {
                 src = options.srcPath + '/' + options.chatWorkers[i].src;
                 dest = options.publicPath + '/' + options.chatWorkers[i].dest;
@@ -142,6 +152,7 @@ function exportTask(grunt) {
                     }
                 }
             }
+            ringHelper.log('taskend', 'End Copy Chat worker files');
         }
 
 
@@ -221,14 +232,17 @@ function exportTask(grunt) {
                 minifiedContent,
                 files = getFiles(options.srcPath, [], 'html', true);
 
+            ringHelper.log('taskstart', 'Prepare Root Templates, link css,js and minify');
+            ringHelper.log('info', 'Templates', 'count', files.length);
             // minify and copy
             // for dashboard and index.html link html and css files
             for (i = 0; i < files.length; i++) {
                 // ringHelper.log('info', 'rootTemplate', files[i]);
                 content = grunt.file.read(files[i], { encoding: 'utf8' });
                 temp = files[i].replace(options.srcPath + '/', '');
-                if (temp === 'index.html' || temp === 'dashboard.html') {
-                    ringHelper.log('info', 'link script and css', files[i]);
+                // if (temp === 'index.html' || temp === 'dashboard.html') {
+                if (options.linkTemplates.indexOf(temp) > -1) {
+                    ringHelper.log('info', 'link script and css in', files[i]);
                     minifiedContent = linkHtmlCss(content);
                 } else {
                     minifiedContent = ringHelper.minifyHtml(content);
@@ -239,6 +253,7 @@ function exportTask(grunt) {
                 }
                 grunt.file.write(files[i].replace(options.srcPath, options.publicPath), minifiedContent);
             }
+            ringHelper.log('taskend', 'Prepare Root Templates, link css,js and minify');
         }
 
         function linkHtmlCss(templateContent) {
@@ -254,7 +269,7 @@ function exportTask(grunt) {
             // link styles
             modifiedContent = ringHelper.linkFiles(
                 modifiedContent,
-                [cssPath],
+                linkStyles,
                 '<!--STYLES-->',
                 '<!--STYLES END-->',
                 '<link rel=\'stylesheet\' type=\'text/css\' href=\'%s\' />');
@@ -272,6 +287,7 @@ function exportTask(grunt) {
                 minifiedContent,
                 files = [];
 
+            ringHelper.log('taskstart', 'MINIFY Template Files');
             files = getFiles(templateDir, [], 'html');
 
             for (i = 0; i < files.length; i++) {
@@ -280,7 +296,7 @@ function exportTask(grunt) {
                     minifiedContent = ringHelper.minifyHtml(templateContent);
                     if (!minifiedContent) {
                         minifiedContent = templateContent;
-                        ringHelper.log('warning', 'Htmlmin', files[i], 'FAIL: ' + templateContent.length);
+                        ringHelper.log('warning', 'Htmlmin', files[i], 'copying without minification');
                     }
 
                     destination = files[i].replace(templateDir, options.publicPath + '/templates');
@@ -288,9 +304,45 @@ function exportTask(grunt) {
                     // ringHelper.log('info', 'templateName: ', files[i], destination);
                     grunt.file.write(destination, minifiedContent);
                 } else {
-                    ringHelper.log('warning', 'Htmlmin', files[i], 'empty file');
+                    ringHelper.log('warning', 'Htmlmin', files[i], 'Empty file');
                 }
             }
+            ringHelper.log('taskstart', 'END MINIFY Template Files');
+            return true;
+        }
+
+        function prepareCss() {
+            var stylesMinFile = '/css/' + Crypto.createHash('md5').update('styles.min.css' + new Date().getTime()).digest('hex') + '.css',
+                cssfile,
+                i,
+                minifiedStyle = '';
+
+            ringHelper.log('taskstart', 'MINIFY STYLESHEETS USING CSSMIN');
+
+            for (i = 0; i < options.appStyles.length; i++) {
+                // cssfile = ringHelper.unixifyPath(options.appStyles[i]);
+                cssfile = options.srcPath + '/' + options.appStyles[i];
+                ringHelper.log('info', 'prepareCss', 'File: ', cssfile);
+                if (!grunt.file.exists(cssfile)) {
+                    ringHelper.log('error', 'File', cssfile, ' Not Found');
+                    return false;
+                }
+
+                if (options.minifyStyles) {
+                    minifiedStyle += String(grunt.file.read(cssfile, { encoding: 'utf8' }));
+                } else {
+                    linkStyles.push(cssfile.replace(options.srcPath, ''));
+                }
+            }
+
+            if (options.minifyStyles) {
+                ringHelper.log('success', 'prepareCss', 'Minify', options.publicPath + stylesMinFile);
+                grunt.file.write(options.publicPath + stylesMinFile, cssmin(minifiedStyle));
+                linkStyles = [stylesMinFile];
+            }
+
+            ringHelper.log('taskend', 'END MINIFY STYLESHEETS USING CSSMIN');
+            return true;
         }
 
         function prepareJS() {
@@ -301,12 +353,16 @@ function exportTask(grunt) {
             // minify if necessary DONE
             // write to destination DONE
             var i,
+                uglifyDone,
                 appScriptContent = '',
                 minifiedScriptFile = Crypto.createHash('md5').update('app.min.js' + new Date().getTime()).digest('hex') + '.js',
                 path;
 
+            ringHelper.log('taskstart', 'Prepare App Scripts');
 
-            copyJSFiles();
+            if (!copyJSFiles()) {
+                return false;
+            }
 
             if (options.minifyScripts) {
                 // concat script files
@@ -318,7 +374,11 @@ function exportTask(grunt) {
                 }
                 // write script file
                 grunt.file.write(options.publicPath + jsPath + 'app.js', appScriptContent);
-                ringHelper.uglify(options.publicPath + jsPath + 'app.js', options.publicPath + jsPath + minifiedScriptFile);
+                uglifyDone = ringHelper.uglify(options.publicPath + jsPath + 'app.js', options.publicPath + jsPath + minifiedScriptFile);
+                if (!uglifyDone) {
+                    return false;
+                }
+
                 linkScripts.push(jsPath + minifiedScriptFile);
             } else {
                 // write script files
@@ -328,6 +388,8 @@ function exportTask(grunt) {
                     linkScripts.push(path.replace(options.publicPath, ''));
                 }
             }
+
+            ringHelper.log('taskend', 'End Prepare App Scripts');
             return true;
         }
 
@@ -347,6 +409,7 @@ function exportTask(grunt) {
                 moduleContentStart = '(function(angular, window) { \'use strict\'; ',
                 moduleContentEnd = '})(angular, window);';
 
+            ringHelper.log('taskstart', 'Copy App Scripts');
             // decide which modules need eslinting ?
             if (options.target === 'local' && grunt.file.exists('.eslintmodules')) {
                 eslintModules = grunt.file.read('.eslintmodules', { encoding: 'utf8' });
@@ -362,7 +425,8 @@ function exportTask(grunt) {
                     }
                 }
             }
-
+            ringHelper.log('info', 'Linting', 'Forced: ', forceEslint);
+            ringHelper.log('info', 'Debugging', 'Enabled: ', options.debugEnabled);
 
             // copy module files
             for (k = 0; k < options.appModules.length; k++) {
@@ -382,13 +446,7 @@ function exportTask(grunt) {
                     } else {
                         moduleContent += ' angular.module(\'' + options.appModules[k].name + '\', []); ';
                     }
-                    // grunt.log.writeln(moduleContent);
-                    // if (options.buildModules) {
-                    // moduleContent = moduleContentStart + moduleContentEnd + moduleContent;
-                    // } else {
                     moduleContent = moduleContentStart + moduleContent + moduleContentEnd;
-                    // }
-                    //
 
                     SCRIPT_FILES.push({
                         name: options.appModules[k].name + '.module.js',
@@ -421,7 +479,7 @@ function exportTask(grunt) {
                 }
             }
 
-
+            ringHelper.log('taskstart', 'End Copy App Scripts');
             return true;
         }
 
@@ -449,10 +507,12 @@ function exportTask(grunt) {
 
             // update settings
             if (filename === options.settingsFile) {
+                ringHelper.log('info', 'Update Settings', file, filename);
                 content = updateSettings(content);
             }
             // update protocol
             if (filename.indexOf(options.protocolFixFiles) > -1) {
+                ringHelper.log('info', 'Update Protocol', file, filename);
                 content = updateSettings(content, true);
             }
 
@@ -558,14 +618,9 @@ function exportTask(grunt) {
             }
 
             for (i = 0; i < searches.length; i++) {
+                ringHelper.log('info', 'Replace', searches[i], replaces[i]);
                 updatedContent = updatedContent.replace(searches[i], replaces[i]);
             }
-            // Modify settingsFile
-            // ringHelper.replace(options.settingsFile, searches, replaces);
-            // Modify Template files
-            // ringHelper.replace(options.protocolFixTemplates, protocolSearches[0], protocolReplaces[0], false, true);
-            // MOdify Worker Files
-            // ringHelper.replace(options.protocolFixScripts, protocolSearches[1], protocolReplaces[1]);
 
             ringHelper.log('taskend', 'END UPDATE APIVERSION, PROTOCOL, SETTINGS(ANALYTICS,DEBUGENABLED,SECURE');
             return updatedContent;

@@ -19,6 +19,7 @@ module.exports = function exportFunc(grunt) {
                 src: 'app/chat/shared',
                 dest: 'js/worker/chat/shared',
             }],
+        protocolFixFiles: ['init-worker.js'],
         templateReplaceFiles = [
             'rg-comments.directive.js',
             'chat.directive.js',
@@ -753,6 +754,7 @@ module.exports = function exportFunc(grunt) {
                 templateReplaceFiles: templateReplaceFiles,
                 workerFiles: workerFiles,
                 chatWorkers: chatWorkers,
+                protocolFixFiles: protocolFixFiles,
                 settingsFile: 'settings.constant.js',
                 vendorFiles: vendorScripts,
             },
