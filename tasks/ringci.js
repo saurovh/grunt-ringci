@@ -32,10 +32,11 @@ function exportTask(grunt) {
             fs = require('fs'),
             Crypto = require('crypto'),
             Path = require('path'),
-            cssmin = require('cssmin'),
+            // cssmin = require('cssmin'),
             ringHelper = require('./lib/helpers').init(grunt, options);
 
         jsPath = options.minifyScripts === true ? '/js/' : '/js/build/';
+        linkStyles = options.minifyScripts === true ? ['/css/styles.css'] : ['/css/build/styles.css'];
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
@@ -311,39 +312,39 @@ function exportTask(grunt) {
             return true;
         }
 
-        function prepareCss() {
-            var stylesMinFile = '/css/' + Crypto.createHash('md5').update('styles.min.css' + new Date().getTime()).digest('hex') + '.css',
-                cssfile,
-                i,
-                minifiedStyle = '';
+        // function prepareCss() {
+        //     var stylesMinFile = '/css/' + Crypto.createHash('md5').update('styles.min.css' + new Date().getTime()).digest('hex') + '.css',
+        //         cssfile,
+        //         i,
+        //         minifiedStyle = '';
 
-            ringHelper.log('taskstart', 'MINIFY STYLESHEETS USING CSSMIN');
+        //     ringHelper.log('taskstart', 'MINIFY STYLESHEETS USING CSSMIN');
 
-            for (i = 0; i < options.appStyles.length; i++) {
-                // cssfile = ringHelper.unixifyPath(options.appStyles[i]);
-                cssfile = options.publicPath + '/' + options.appStyles[i];
-                ringHelper.log('info', 'prepareCss', 'File: ', cssfile);
-                if (!grunt.file.exists(cssfile)) {
-                    ringHelper.log('error', 'File', cssfile, ' Not Found');
-                    return false;
-                }
+        //     for (i = 0; i < options.appStyles.length; i++) {
+        //         // cssfile = ringHelper.unixifyPath(options.appStyles[i]);
+        //         cssfile = options.publicPath + '/' + options.appStyles[i];
+        //         ringHelper.log('info', 'prepareCss', 'File: ', cssfile);
+        //         if (!grunt.file.exists(cssfile)) {
+        //             ringHelper.log('error', 'File', cssfile, ' Not Found');
+        //             return false;
+        //         }
 
-                if (options.minifyStyles) {
-                    minifiedStyle += String(grunt.file.read(cssfile, { encoding: 'utf8' }));
-                } else {
-                    linkStyles.push(cssfile.replace(options.publicPath, ''));
-                }
-            }
+        //         if (options.minifyStyles) {
+        //             minifiedStyle += String(grunt.file.read(cssfile, { encoding: 'utf8' }));
+        //         } else {
+        //             linkStyles.push(cssfile.replace(options.publicPath, ''));
+        //         }
+        //     }
 
-            if (options.minifyStyles) {
-                ringHelper.log('success', 'prepareCss', 'Minify', options.publicPath + stylesMinFile);
-                grunt.file.write(options.publicPath + stylesMinFile, cssmin(minifiedStyle));
-                linkStyles = [stylesMinFile];
-            }
+        //     if (options.minifyStyles) {
+        //         ringHelper.log('success', 'prepareCss', 'Minify', options.publicPath + stylesMinFile);
+        //         grunt.file.write(options.publicPath + stylesMinFile, cssmin(minifiedStyle));
+        //         linkStyles = [stylesMinFile];
+        //     }
 
-            ringHelper.log('taskend', 'DONE MINIFY STYLESHEETS USING CSSMIN');
-            return true;
-        }
+        //     ringHelper.log('taskend', 'DONE MINIFY STYLESHEETS USING CSSMIN');
+        //     return true;
+        // }
 
         function prepareJS() {
             // copy files DONE
