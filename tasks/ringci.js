@@ -389,6 +389,8 @@ function exportTask(grunt) {
                 }
             }
 
+            SCRIPT_FILES = [];
+
             ringHelper.log('taskend', 'DONE: PREPARE APP SCRIPTS');
             return true;
         }
