@@ -36,7 +36,7 @@ function exportTask(grunt) {
             ringHelper = require('./lib/helpers').init(grunt, options);
 
         jsPath = options.minifyScripts === true ? '/js/' : '/js/build/';
-        linkStyles = options.minifyScripts === true ? ['css/styles.min.css'] : ['css/build/styles.css'];
+        linkStyles = options.minifyScripts === true ? ['css/styles.min.css'] : ['css/styles.css'];
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
