@@ -54,9 +54,9 @@ function exportTask(grunt) {
         }
         // 3. prepare css files
         // // run sass and write to css directory
-        if (taskSuccess) {
-            taskSuccess = prepareCss();
-        }
+        // if (taskSuccess) {
+        //     taskSuccess = prepareCss();
+        // }
         // 4. prepare root template files and link if necessary
         if (taskSuccess) {
             taskSuccess = prepareRootTemplates();
