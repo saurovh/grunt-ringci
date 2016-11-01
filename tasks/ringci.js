@@ -36,7 +36,7 @@ function exportTask(grunt) {
             ringHelper = require('./lib/helpers').init(grunt, options);
 
         jsPath = options.minifyScripts === true ? '/js/' : '/js/build/';
-        linkStyles = options.minifyScripts === true ? ['/css/styles.css'] : ['/css/build/styles.css'];
+        linkStyles = options.minifyScripts === true ? ['css/styles.min.css'] : ['css/build/styles.css'];
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
@@ -428,8 +428,22 @@ function exportTask(grunt) {
                     }
                 }
             }
-            ringHelper.log('info', 'Linting', 'Forced: ', forceEslint);
-            ringHelper.log('info', 'Debugging', 'Enabled: ', options.debugEnabled);
+            ringHelper.log('info', 'Linting', 'Forced: ' + forceEslint);
+            ringHelper.log('info', 'Debugging', 'Enabled: ' + options.debugEnabled);
+
+
+            // copy debug files if necessary
+            if (options.debugEnabled) {
+                for (i = 0; i < options.debugFiles.length; i++) {
+                    srcPath = options.srcPath + '/' + options.debugFiles[i];
+                    if (grunt.file.exists(srcPath)) {
+                        prepareFile(srcPath, 'debugfile');
+                    } else {
+                        ringHelper.log('error', 'File', srcPath, ' Not Found');
+                        return false;
+                    }
+                }
+            }
 
             // copy module files
             for (k = 0; k < options.appModules.length; k++) {
