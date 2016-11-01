@@ -307,7 +307,7 @@ function exportTask(grunt) {
                     ringHelper.log('warning', 'Htmlmin', files[i], 'Empty file');
                 }
             }
-            ringHelper.log('taskstart', 'END MINIFY Template Files');
+            ringHelper.log('taskend', 'DONE MINIFY Template Files');
             return true;
         }
 
@@ -358,7 +358,7 @@ function exportTask(grunt) {
                 minifiedScriptFile = Crypto.createHash('md5').update('app.min.js' + new Date().getTime()).digest('hex') + '.js',
                 path;
 
-            ringHelper.log('taskstart', 'Prepare App Scripts');
+            ringHelper.log('taskstart', 'PREPARE APP SCRIPTS');
 
             if (!copyJSFiles()) {
                 return false;
@@ -389,7 +389,7 @@ function exportTask(grunt) {
                 }
             }
 
-            ringHelper.log('taskend', 'End Prepare App Scripts');
+            ringHelper.log('taskstart', 'DONE: PREPARE APP SCRIPTS');
             return true;
         }
 
@@ -409,7 +409,7 @@ function exportTask(grunt) {
                 moduleContentStart = '(function(angular, window) { \'use strict\'; ',
                 moduleContentEnd = '})(angular, window);';
 
-            ringHelper.log('taskstart', 'Copy App Scripts');
+            ringHelper.log('taskstart', 'Copy Scripts');
             // decide which modules need eslinting ?
             if (options.target === 'local' && grunt.file.exists('.eslintmodules')) {
                 eslintModules = grunt.file.read('.eslintmodules', { encoding: 'utf8' });
@@ -479,7 +479,7 @@ function exportTask(grunt) {
                 }
             }
 
-            ringHelper.log('taskstart', 'End Copy App Scripts');
+            ringHelper.log('taskend', 'Done Copy Scripts');
             return true;
         }
 
@@ -507,12 +507,12 @@ function exportTask(grunt) {
 
             // update settings
             if (filename === options.settingsFile) {
-                ringHelper.log('info', 'Update Settings', file, filename);
+                ringHelper.log('success', 'Update Settings', file, filename);
                 content = updateSettings(content);
             }
             // update protocol
             if (filename.indexOf(options.protocolFixFiles) > -1) {
-                ringHelper.log('info', 'Update Protocol', file, filename);
+                ringHelper.log('success', 'Update Protocol', file, filename);
                 content = updateSettings(content, true);
             }
 
@@ -589,7 +589,7 @@ function exportTask(grunt) {
                 protocolSearches,
                 protocolReplaces;
 
-            ringHelper.log('taskstart', 'UPDATE APIVERSION, PROTOCOL, SETTINGS(ANALYTICS,DEBUGENABLED,SECURE');
+            ringHelper.log('taskstart', 'Update Settings');
 
             if (options.target === 'live') {
             // set replacement parameters
@@ -622,7 +622,7 @@ function exportTask(grunt) {
                 updatedContent = updatedContent.replace(searches[i], replaces[i]);
             }
 
-            ringHelper.log('taskend', 'END UPDATE APIVERSION, PROTOCOL, SETTINGS(ANALYTICS,DEBUGENABLED,SECURE');
+            ringHelper.log('taskend', 'DONE Update Settings');
             return updatedContent;
         }
 
