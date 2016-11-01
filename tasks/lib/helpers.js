@@ -29,13 +29,13 @@ function initFunc(grunt) {
             start = content.indexOf(startTag),
             end = content.indexOf(endTag, start);
 
-        log('info', 'linkFiles', 'content length ', content.length);
+        // log('info', 'linkFiles', 'content length ', content.length);
         log('info', 'linkFiles', 'no of files ', files.length);
-        log('info', 'linkFiles', 'startTag', startTag);
-        log('info', 'linkFiles', 'endartTag', endTag);
-        log('info', 'linkFiles', 'template', template);
-        log('info', 'linkFiles', 'start', start);
-        log('info', 'linkFiles', 'end', end);
+        // log('info', 'linkFiles', 'startTag', startTag);
+        // log('info', 'linkFiles', 'endartTag', endTag);
+        // log('info', 'linkFiles', 'template', template);
+        // log('info', 'linkFiles', 'start', start);
+        // log('info', 'linkFiles', 'end', end);
 
         for (i = 0; i < files.length; i++) {
             scripts.push(Util.format(template, files[i]));
