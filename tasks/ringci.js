@@ -79,6 +79,9 @@ function exportTask(grunt) {
                 srcPath = '',
                 minSrcPath = '',
                 minifiedScript = '',
+                filename = '',
+                destPath = '',
+                vendorPath = jsPath + 'build/',
                 i;
                 // err;
 
@@ -87,28 +90,36 @@ function exportTask(grunt) {
             for (i = 0; i < options.vendorFiles.length; i++) {
                 srcPath = options.srcPath + '/' + options.vendorFiles[i];
                 if (grunt.file.exists(srcPath)) {
-                // is a minified file?
-                    if (srcPath.indexOf('min') === -1) {
-                        minSrcPath = srcPath.substr(0, srcPath.lastIndexOf('.')) + '.min' + srcPath.substr(srcPath.lastIndexOf('.'));
-                        // exists a minified file in the same dir of the src file?
-                        if (grunt.file.exists(minSrcPath)) {
-                            ringHelper.log('info', 'Got Minified', minSrcPath);
-                            minifiedScript += grunt.file.read(minSrcPath, { encoding: 'utf8' });
-                        } else {
-                            // need to minify
-                            ringHelper.log('info', 'Not Minified: ', srcPath);
-                            uglifiedContent = ringHelper.uglify(srcPath, '', true);
-
-                            if (uglifiedContent) {
-                                minifiedScript += uglifiedContent;
+                    if (options.minifyScripts) {
+                        // is a minified file?
+                        if (srcPath.indexOf('min') === -1) {
+                            minSrcPath = srcPath.substr(0, srcPath.lastIndexOf('.')) + '.min' + srcPath.substr(srcPath.lastIndexOf('.'));
+                            // exists a minified file in the same dir of the src file?
+                            if (grunt.file.exists(minSrcPath)) {
+                                ringHelper.log('info', 'Got Minified', minSrcPath);
+                                minifiedScript += grunt.file.read(minSrcPath, { encoding: 'utf8' });
                             } else {
-                                return false;
+                                // need to minify
+                                ringHelper.log('info', 'Not Minified: ', srcPath);
+                                uglifiedContent = ringHelper.uglify(srcPath, '', true);
+
+                                if (uglifiedContent) {
+                                    minifiedScript += uglifiedContent;
+                                } else {
+                                    return false;
+                                }
                             }
+                        } else {
+                            ringHelper.log('info', 'File', srcPath);
+                            // already minified  no need to minify
+                            minifiedScript += String(grunt.file.read(srcPath, { encoding: 'utf8' }));
                         }
                     } else {
-                        ringHelper.log('info', 'File', srcPath);
-                        // already minified  no need to minify
-                        minifiedScript += String(grunt.file.read(srcPath, { encoding: 'utf8' }));
+                        filename = srcPath.substr(srcPath.lastIndexOf('/') + 1);
+                        destPath = options.publicPath + vendorPath + filename;
+                        grunt.file.copy(srcPath, destPath);
+                        ringHelper.log('info', 'VendorFile', 'filename', destPath);
+                        linkScripts = [destPath.replace(options.publicPath, '')].concat(linkScripts);
                     }
                 } else {
                     ringHelper.log('error', 'File', srcPath, 'Not found');
@@ -116,11 +127,12 @@ function exportTask(grunt) {
                 }
             }
 
-            grunt.file.write(vendorMinFile, minifiedScript);
-            linkScripts = [vendorMinFile.replace(options.publicPath, '')].concat(linkScripts);
-            // VENDOR_SCRIPTS = [vendorMinFile];
+            if (options.minifyScripts) {
+                grunt.file.write(vendorMinFile, minifiedScript);
+                linkScripts = [vendorMinFile.replace(options.publicPath, '')].concat(linkScripts);
+                ringHelper.log('success', 'Uglify', vendorMinFile);
+            }
 
-            ringHelper.log('success', 'Uglify', vendorMinFile);
 
             ringHelper.log('taskend', 'DONE BUILDING app.vendor.min');
             return true;
