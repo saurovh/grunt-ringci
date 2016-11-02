@@ -156,11 +156,11 @@ function exportTask(grunt) {
                 files = getFiles(src, [], 'js', true);
                 for (j = 0; j < files.length; j++) {
                     filename = files[j].substr(files[j].lastIndexOf('/') + 1);
-                    ringHelper.log('info', 'workerFile: ', files[j], dest + '/' + filename);
 
                     if (options.minifyScripts) {
                         ringHelper.uglify(files[j], dest + '/' + filename);
                     } else {
+                        ringHelper.log('info', 'workerFile: ', files[j], dest + '/' + filename);
                         grunt.file.copy(files[j], dest + '/' + filename);
                     }
                 }
