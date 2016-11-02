@@ -81,7 +81,6 @@ function exportTask(grunt) {
                 minifiedScript = '',
                 filename = '',
                 destPath = '',
-                vendorPath = jsPath + 'build/',
                 i;
                 // err;
 
@@ -116,9 +115,9 @@ function exportTask(grunt) {
                         }
                     } else {
                         filename = srcPath.substr(srcPath.lastIndexOf('/') + 1);
-                        destPath = options.publicPath + vendorPath + filename;
+                        destPath = options.publicPath + jsPath + filename;
                         grunt.file.copy(srcPath, destPath);
-                        ringHelper.log('info', 'VendorFile', 'filename', destPath);
+                        ringHelper.log('info', 'VendorFile', filename, destPath);
                         linkScripts = [destPath.replace(options.publicPath, '')].concat(linkScripts);
                     }
                 } else {
@@ -200,16 +199,21 @@ function exportTask(grunt) {
 
                             if (grunt.file.exists(Path.resolve(srcPath + srcFile))) {
                                 if (options.minifyScripts === true || options.target === 'live') {
-                                    ringHelper.log('success', 'Included File', Path.resolve((srcPath + srcFile)));
+                                    // ringHelper.log('success', 'Included File', Path.resolve((srcPath + srcFile)));
+                                    ringHelper.log('success', 'Included File', (srcPath + srcFile));
                                     // insert all supportFiles inside worker file content;
-                                    workerFileContent += String(grunt.file.read(Path.resolve(srcPath + srcFile), { encoding: 'utf8' })) + '\n';
+                                    // workerFileContent += String(grunt.file.read(Path.resolve(srcPath + srcFile), { encoding: 'utf8' })) + '\n';
+                                    workerFileContent += String(grunt.file.read((srcPath + srcFile), { encoding: 'utf8' })) + '\n';
                                     mainWorker = mainWorker.replace(regexMatches[j], '');
                                 } else {
-                                    ringHelper.log('info', 'Copy', Path.resolve((srcPath + srcFile)), Path.resolve(dest + srcFile));
-                                    grunt.file.copy(Path.resolve(srcPath + srcFile), Path.resolve(dest + srcFile));
+                                    // ringHelper.log('info', 'Copy', Path.resolve((srcPath + srcFile)), Path.resolve(dest + srcFile));
+                                    ringHelper.log('info', 'Copy', (srcPath + srcFile), (dest + srcFile));
+                                    // grunt.file.copy(Path.resolve(srcPath + srcFile), Path.resolve(dest + srcFile));
+                                    grunt.file.copy((srcPath + srcFile), (dest + srcFile));
                                 }
                             } else {
-                                ringHelper.log('error', 'File', Path.resolve(srcPath + srcFile), ' Not Found');
+                                // ringHelper.log('error', 'File', Path.resolve(srcPath + srcFile), ' Not Found');
+                                ringHelper.log('error', 'File', (srcPath + srcFile), ' Not Found');
                                 return false;
                             }
                         }
