@@ -124,8 +124,8 @@ function initFunc(grunt) {
     function minifyHtml(content) {
         var modifiedContent = String(content),
             options = {
-                minifyCSS: true,
-                minifyJS: true,
+                minifyCSS: false,
+                minifyJS: false,
                 removeComments: true,
                 collapseWhitespace: true,
             };
