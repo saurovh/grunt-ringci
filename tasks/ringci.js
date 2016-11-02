@@ -387,8 +387,8 @@ function exportTask(grunt) {
                     // grunt.file.write(path, SCRIPT_FILES[i].content);
                 }
                 // write script file
-                grunt.file.write(options.publicPath + jsPath + 'app.js', appScriptContent);
-                uglifyDone = ringHelper.uglify(options.publicPath + jsPath + 'app.js', options.publicPath + jsPath + minifiedScriptFile);
+                grunt.file.write(options.publicPath + jsPath + 'build/app.js', appScriptContent);
+                uglifyDone = ringHelper.uglify(options.publicPath + jsPath + 'build/app.js', options.publicPath + jsPath + minifiedScriptFile);
                 if (!uglifyDone) {
                     return false;
                 }
