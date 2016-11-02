@@ -523,6 +523,7 @@ function exportTask(grunt) {
 
         function prepareFile(file, modulename) {
             var content = '',
+                i,
                 lastIndex = 0,
                 filename = '';
 
@@ -555,8 +556,11 @@ function exportTask(grunt) {
             }
 
             // templateURL replace
-            if (options.templateReplaceFiles.indexOf(filename) > -1) {
-                content = replaceTemplateUrl(content);
+            for (i = 0; i < options.templateReplaceFiles.length; i++) {
+                if (options.templateReplaceFiles[i].indexOf(filename) > -1) {
+                    ringHelper.log('success', 'TemplateURL replace', filename);
+                    content = replaceTemplateUrl(content);
+                }
             }
 
             SCRIPT_FILES.push({
