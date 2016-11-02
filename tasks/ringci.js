@@ -75,6 +75,7 @@ function exportTask(grunt) {
 
         function prepareVendorScripts() {
             var vendorMinFile = options.publicPath + '/js/' + Crypto.createHash('md5').update('app-vendor.min.js' + new Date().getTime()).digest('hex') + '.js',
+                vendorScripts = [],
                 uglifiedContent,
                 srcPath = '',
                 minSrcPath = '',
@@ -118,7 +119,8 @@ function exportTask(grunt) {
                         destPath = options.publicPath + jsPath + filename;
                         grunt.file.copy(srcPath, destPath);
                         ringHelper.log('info', 'VendorFile', filename, destPath);
-                        linkScripts = [destPath.replace(options.publicPath, '')].concat(linkScripts);
+                        // linkScripts = [destPath.replace(options.publicPath, '')].concat(linkScripts);
+                        vendorScripts.push(destPath.replace(options.publicPath, ''));
                     }
                 } else {
                     ringHelper.log('error', 'File', srcPath, 'Not found');
@@ -128,10 +130,12 @@ function exportTask(grunt) {
 
             if (options.minifyScripts) {
                 grunt.file.write(vendorMinFile, minifiedScript);
-                linkScripts = [vendorMinFile.replace(options.publicPath, '')].concat(linkScripts);
                 ringHelper.log('success', 'Uglify', vendorMinFile);
+                vendorScripts.push(vendorMinFile.replace(options.publicPath, ''));
             }
 
+            // linkScripts = [vendorMinFile.replace(options.publicPath, '')].concat(linkScripts);
+            linkScripts = vendorScripts.concat(linkScripts);
 
             ringHelper.log('taskend', 'DONE BUILDING app.vendor.min');
             return true;
