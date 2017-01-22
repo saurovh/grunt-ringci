@@ -202,7 +202,7 @@ function exportTask(grunt) {
                             srcFile = regexMatches[j].substr(15, regexMatches[j].length - 15 - 3);
 
                             if (grunt.file.exists(Path.resolve(srcPath + srcFile))) {
-                                if (options.minifyScripts === true || options.target === 'live') {
+                                if (options.minifyScripts === true) {
                                     // ringHelper.log('success', 'Included File', Path.resolve((srcPath + srcFile)));
                                     ringHelper.log('success', 'Included File', (srcPath + srcFile));
                                     // insert all supportFiles inside worker file content;
@@ -222,7 +222,7 @@ function exportTask(grunt) {
                             }
                         }
 
-                        if (options.minifyScripts === true || options.target === 'live') {
+                        if (options.minifyScripts === true) {
                         // workerFileContent += grunt.file.read(srcPath + workerFile, {encoding: 'utf8'});
                             grunt.file.write(dest + workerFile, workerFileContent + '\n' + mainWorker);
                             if (!ringHelper.uglify(dest + workerFile, dest + workerFile)) {
@@ -261,6 +261,8 @@ function exportTask(grunt) {
                 // ringHelper.log('info', 'rootTemplate', files[i]);
                 content = grunt.file.read(files[i], { encoding: 'utf8' });
                 temp = files[i].replace(options.srcPath + '/', '');
+                // fix protocol
+                content = content.replace('local.ringid.com', options.targetUrl);
                 // if (temp === 'index.html' || temp === 'dashboard.html') {
                 if (options.linkTemplates.indexOf(temp) > -1) {
                     ringHelper.log('info', 'link script and css in', files[i]);
@@ -402,6 +404,22 @@ function exportTask(grunt) {
                 }
 
                 linkScripts.push(jsPath + minifiedScriptFile);
+            } if (options.concatScripts) {
+                // concat script files
+                for (i = 0; i < SCRIPT_FILES.length; i++) {
+                    appScriptContent += SCRIPT_FILES[i].content + '\n';
+                    // path = options.publicPath + jsPath + SCRIPT_FILES[i].name;
+                    // ringHelper.log('info', 'write script to ', path);
+                    // grunt.file.write(path, SCRIPT_FILES[i].content);
+                }
+                // write script file
+                grunt.file.write(options.publicPath + jsPath + 'build/app.js', appScriptContent);
+                uglifyDone = ringHelper.uglify(options.publicPath + jsPath + 'build/app.js', options.publicPath + jsPath + minifiedScriptFile);
+                if (!uglifyDone) {
+                    return false;
+                }
+
+                linkScripts.push(jsPath + 'build/app.js');
             } else {
                 // write script files
                 for (i = 0; i < SCRIPT_FILES.length; i++) {
