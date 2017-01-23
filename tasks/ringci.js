@@ -404,7 +404,7 @@ function exportTask(grunt) {
                 }
 
                 linkScripts.push(jsPath + minifiedScriptFile);
-            } if (options.concatScripts) {
+            } else if (options.concatScripts) {
                 // concat script files
                 for (i = 0; i < SCRIPT_FILES.length; i++) {
                     appScriptContent += SCRIPT_FILES[i].content + '\n';
