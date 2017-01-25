@@ -10,7 +10,8 @@ var
 module.exports.init = initFunc;
 
 function initFunc(grunt) {
-    var exports = {};
+    var exports = {},
+        queryString = Math.floor(Math.random() * 1000);
 
     exports.log = log;
     exports.lintScript = lintScript;
@@ -38,7 +39,7 @@ function initFunc(grunt) {
         // log('info', 'linkFiles', 'end', end);
 
         for (i = 0; i < files.length; i++) {
-            scripts.push(Util.format(template, files[i]));
+            scripts.push(Util.format(template, files[i] + '?v=' + queryString));
         }
 
         // grunt.log.write(scripts);
