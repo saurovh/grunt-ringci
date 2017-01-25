@@ -281,7 +281,8 @@ function exportTask(grunt) {
         }
 
         function linkHtmlCss(templateContent) {
-            var modifiedContent = String(templateContent);
+            var queryString = Math.floor(Math.random() * 1000),
+                modifiedContent = String(templateContent);
             // link scripts (content, files, startTag, endTag, template)
             //
             modifiedContent = ringHelper.linkFiles(
@@ -289,14 +290,14 @@ function exportTask(grunt) {
                 linkScripts,
                 '<!--SCRIPTS-->',
                 '<!--SCRIPTS END-->',
-                '<script  src=\'%s\'></script>');
+                '<script  src=\'%s\'?v=' + queryString + '></script>');
             // link styles
             modifiedContent = ringHelper.linkFiles(
                 modifiedContent,
                 linkStyles,
                 '<!--STYLES-->',
                 '<!--STYLES END-->',
-                '<link rel=\'stylesheet\' type=\'text/css\' href=\'%s\' />');
+                '<link rel=\'stylesheet\' type=\'text/css\' href=\'%s\'?v=' + queryString + ' />');
             return modifiedContent;
         }
 
