@@ -89,12 +89,12 @@ function exportTask(grunt) {
                     break;
                 case 'stage':
                     searches.push('devmediacloud');
-                    replaces.concat(['pro.ringid.com', 'mediacloud']);
+                    replaces = ['pro.ringid.com', 'mediacloud'];
                     replaceUrlFixes();
                     break;
                 case 'live':
                     searches.push('devmediacloud');
-                    replaces.concat(['www.ringid.com', 'mediacloud']);
+                    replaces = ['www.ringid.com', 'mediacloud'];
                     replaceUrlFixes();
                     break;
                 default:
@@ -107,6 +107,7 @@ function exportTask(grunt) {
                 if (!content) {
                     return;
                 }
+                ringHelper.log('info', 'searches:' + searches.length, 'replaces:' + replaces.length);
 
                 content = String(content);
                 for (i = 0; i < searches.length; i++) {
