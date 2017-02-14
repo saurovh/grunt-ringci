@@ -82,7 +82,7 @@ function exportTask(grunt) {
 
             ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
 
-            switch (options.target) {
+            switch (grunt.task.current.nameArgs) {
                 case 'dev':
                     replaces.push('dev.ringid.com');
                     replaceUrlFixes();
@@ -112,7 +112,7 @@ function exportTask(grunt) {
                 content = String(content);
                 for (i = 0; i < searches.length; i++) {
                     ringHelper.log('info', 'Replace', searches[i], replaces[i]);
-                    content = content.replace(searches[i], replaces[i]);
+                    content = content.replace(new RegExp(searches[i], 'g'), replaces[i]);
                 }
                 grunt.file.write(playerTemplate, content);
             }
