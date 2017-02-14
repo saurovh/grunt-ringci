@@ -81,18 +81,19 @@ function exportTask(grunt) {
                 i;
 
             ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
+            ringHelper.log('info', 'Task Target', grunt.task.current.nameArgs);
 
             switch (grunt.task.current.nameArgs) {
-                case 'dev':
+                case 'ringci:dev':
                     replaces.push('dev.ringid.com');
                     replaceUrlFixes();
                     break;
-                case 'stage':
+                case 'ringci:stage':
                     searches.push('devmediacloud');
                     replaces = ['pro.ringid.com', 'mediacloud'];
                     replaceUrlFixes();
                     break;
-                case 'live':
+                case 'ringci:live':
                     searches.push('devmediacloud');
                     replaces = ['www.ringid.com', 'mediacloud'];
                     replaceUrlFixes();
