@@ -40,6 +40,8 @@ function exportTask(grunt) {
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
+        ringHelper.log('info', 'MOBILE SITE URL FIX');
+        fixPlayerUrl();
         // main tasks 4 sets of files to watch for
         // 1. minify partial templates
         taskSuccess = prepareHtml();
@@ -72,6 +74,47 @@ function exportTask(grunt) {
             taskSuccess = prepareChatWorkers();
         }
 
+
+        function fixPlayerUrl() {
+            var playerTemplate = options.publicPath + '/player/embed.html',
+                searches = ['local.ringid.com'],
+                replaces = [],
+                i;
+
+            switch (options.target) {
+                case 'dev':
+                    replaces.push('dev.ringid.com');
+                    replaceUrlFixes();
+                    break;
+                case 'stage':
+                    searches.push('devmediacloud');
+                    replaces.concat(['pro.ringid.com', 'mediacloud']);
+                    replaceUrlFixes();
+                    break;
+                case 'live':
+                    searches.push('devmediacloud');
+                    replaces.concat(['www.ringid.com', 'mediacloud']);
+                    replaceUrlFixes();
+                    break;
+                default:
+                    ringHelper.log('warning', 'Unknown target');
+            }
+
+            function replaceUrlFixes() {
+                var content = grunt.file.read(playerTemplate, { encoding: 'utf8' });
+
+                if (!content) {
+                    return;
+                }
+
+                content = String(content);
+                for (i = 0; i < searches.length; i++) {
+                    ringHelper.log('info', 'Replace', searches[i], replaces[i]);
+                    content = content.replace(searches[i], replaces[i]);
+                }
+                grunt.file.write(playerTemplate, content);
+            }
+        }
 
         function prepareVendorScripts() {
             var vendorMinFile = options.publicPath + '/js/' + Crypto.createHash('md5').update('app-vendor.min.js' + new Date().getTime()).digest('hex') + '.js',
