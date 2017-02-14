@@ -40,7 +40,6 @@ function exportTask(grunt) {
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
-        ringHelper.log('info', 'MOBILE SITE URL FIX');
         fixPlayerUrl();
         // main tasks 4 sets of files to watch for
         // 1. minify partial templates
@@ -81,6 +80,8 @@ function exportTask(grunt) {
                 replaces = [],
                 i;
 
+            ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
+
             switch (options.target) {
                 case 'dev':
                     replaces.push('dev.ringid.com');
@@ -97,7 +98,7 @@ function exportTask(grunt) {
                     replaceUrlFixes();
                     break;
                 default:
-                    ringHelper.log('warning', 'Unknown target');
+                    ringHelper.log('warning', 'Unknown target', options.target);
             }
 
             function replaceUrlFixes() {
