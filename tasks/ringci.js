@@ -40,7 +40,7 @@ function exportTask(grunt) {
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
-        fixPlayerUrl();
+        // fixPlayerUrl();
         // main tasks 4 sets of files to watch for
         // 1. minify partial templates
         taskSuccess = prepareHtml();
@@ -74,49 +74,79 @@ function exportTask(grunt) {
         }
 
 
-        function fixPlayerUrl() {
-            var playerTemplate = options.publicPath + '/player/embed.html',
-                searches = ['local.ringid.com'],
+        function fixUrls(content) {
+            // var playerTemplate = options.publicPath + '/player/embed.html',
+            var searches = ['http://local.ringid.com'],
+                updatedContent,
                 replaces = [],
                 i;
 
-            ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
+            // ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
             ringHelper.log('info', 'Task Target', grunt.task.current.nameArgs);
 
             switch (grunt.task.current.nameArgs) {
+                case 'ringci:local':
+                    if (options.protocol === 'ssl') {
+                        searches.push('http://devmediacloud');
+                        replaces.push('https://local.ringid.com', 'https://devmediacloud');
+                        updatedContent = replaceUrlFixes();
+                    } else {
+                        updatedContent = content;
+                    }
+                    break;
                 case 'ringci:dev':
-                    replaces.push('dev.ringid.com');
-                    replaceUrlFixes();
+                    if (options.protocol === 'ssl') {
+                        searches.push('http://devmediacloud');
+                        replaces.push('https://dev.ringid.com', 'https://devmediacloud');
+                    } else {
+                        replaces.push('http://dev.ringid.com');
+                    }
+                    updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:stage':
-                    searches.push('devmediacloud');
-                    replaces = ['pro.ringid.com', 'mediacloud'];
-                    replaceUrlFixes();
+                    if (options.protocol === 'ssl') {
+                        searches.push('http://devmediacloud');
+                        replaces = ['https://pro.ringid.com', 'https://mediacloud'];
+                    } else {
+                        searches.push('http://devmediacloud');
+                        replaces = ['http://pro.ringid.com', 'http://mediacloud'];
+                    }
+                    updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:live':
-                    searches.push('devmediacloud');
-                    replaces = ['www.ringid.com', 'mediacloud'];
-                    replaceUrlFixes();
+                    if (options.protocol === 'ssl') {
+                        searches.push('http://devmediacloud');
+                        replaces = ['https://www.ringid.com', 'https://mediacloud'];
+                    } else {
+                        searches.push('http://devmediacloud');
+                        replaces = ['http://www.ringid.com', 'http://mediacloud'];
+                    }
+                    updatedContent = replaceUrlFixes();
                     break;
                 default:
                     ringHelper.log('warning', 'Unknown target', options.target);
+                    updatedContent = content;
             }
 
             function replaceUrlFixes() {
-                var content = grunt.file.read(playerTemplate, { encoding: 'utf8' });
+                var modified;
+                // var content = grunt.file.read(playerTemplate, { encoding: 'utf8' });
 
                 if (!content) {
-                    return;
+                    return content;
                 }
                 ringHelper.log('info', 'searches:' + searches.length, 'replaces:' + replaces.length);
 
-                content = String(content);
+                modified = String(content);
                 for (i = 0; i < searches.length; i++) {
                     ringHelper.log('info', 'Replace', searches[i], replaces[i]);
-                    content = content.replace(new RegExp(searches[i], 'g'), replaces[i]);
+                    modified = modified.replace(new RegExp(searches[i], 'g'), replaces[i]);
                 }
-                grunt.file.write(playerTemplate, content);
+                // grunt.file.write(playerTemplate, content);
+                return modified;
             }
+
+            return updatedContent;
         }
 
         function prepareVendorScripts() {
@@ -307,11 +337,12 @@ function exportTask(grunt) {
                 // ringHelper.log('info', 'rootTemplate', files[i]);
                 content = grunt.file.read(files[i], { encoding: 'utf8' });
                 temp = files[i].replace(options.srcPath + '/', '');
-                // fix protocol
-                content = content.replace('local.ringid.com', options.targetUrl);
+                // fix urls and protocols
+                // content = content.replace('local.ringid.com', options.targetUrl);
                 // if (temp === 'index.html' || temp === 'dashboard.html') {
                 if (options.linkTemplates.indexOf(temp) > -1) {
                     ringHelper.log('info', 'link script and css in', files[i]);
+                    content = fixUrls(content);
                     minifiedContent = linkHtmlCss(content);
                 } else {
                     minifiedContent = ringHelper.minifyHtml(content);
@@ -534,6 +565,7 @@ function exportTask(grunt) {
             for (k = 0; k < options.appModules.length; k++) {
                 enableLinting = forceEslint ||
                                 (eslintModules.indexOf(options.appModules[k].name) > -1);
+                enableLinting = false;
                 // create and add module files
                 if (options.appModules[k].name !== 'globals') {
                     moduleContent = '';
