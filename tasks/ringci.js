@@ -565,7 +565,6 @@ function exportTask(grunt) {
             for (k = 0; k < options.appModules.length; k++) {
                 enableLinting = forceEslint ||
                                 (eslintModules.indexOf(options.appModules[k].name) > -1);
-                enableLinting = false;
                 // create and add module files
                 if (options.appModules[k].name !== 'globals') {
                     moduleContent = '';
