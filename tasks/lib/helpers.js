@@ -27,8 +27,8 @@ function initFunc(grunt) {
             padding,
             modifiedContent = String(content),
             ind,
-            start = content.indexOf(startTag),
-            end = content.indexOf(endTag, start);
+            start = modifiedContent.indexOf(startTag),
+            end = modifiedContent.indexOf(endTag, start);
 
         // log('info', 'linkFiles', 'content length ', content.length);
         log('info', 'linkFiles', 'no of files ', files.length);
