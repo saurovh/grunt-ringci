@@ -374,6 +374,13 @@ function exportTask(grunt) {
                 '<!--STYLES-->',
                 '<!--STYLES END-->',
                 '<link rel=\'stylesheet\' type=\'text/css\' href=\'%s\' />');
+
+            if (!modifiedContent) {
+                ringHelper.log('warning', 'linkHtmlCss', 'Failed');
+
+                return templateContent;
+            }
+
             return modifiedContent;
         }
 
