@@ -1,0 +1,27 @@
+{
+    "searches": [
+        "http://local.ringid.com",
+        "http://devimageres.ringid.com",
+        "http://devmediacloud.ringid.com"
+    ],
+    "local": [
+        "https://local.ringid.com",
+        "https://devimageres.ringid.com",
+        "https://devmediacloud.ringid.com"
+    ],
+    "dev": [
+        "https://dev.ringid.com",
+        "https://devimageres.ringid.com",
+        "https://devmediacloud.ringid.com"
+    ],
+    "stage": [
+        "https://pro.ringid.com",
+        "https://imageres.ringid.com",
+        "https://mediacloud.ringid.com"
+    ],
+    "live": [
+        "https://www.ringid.com",
+        "https://imageres.ringid.com",
+        "https://mediacloud.ringid.com"
+    ]
+}

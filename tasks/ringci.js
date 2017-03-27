@@ -29,6 +29,7 @@ function exportTask(grunt) {
                 punctuation: '.',
                 separator: ', ',
             }),
+            urlFixRules,
             fs = require('fs'),
             Crypto = require('crypto'),
             Path = require('path'),
@@ -40,7 +41,6 @@ function exportTask(grunt) {
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
-        // fixPlayerUrl();
         // main tasks 4 sets of files to watch for
         // 1. minify partial templates
         taskSuccess = prepareHtml();
@@ -76,51 +76,44 @@ function exportTask(grunt) {
 
         function fixUrls(content) {
             // var playerTemplate = options.publicPath + '/player/embed.html',
-            var searches = ['http://local.ringid.com'],
+            var searches, //  = ['http://local.ringid.com'],
                 updatedContent,
-                replaces = [],
+                replaces, //  = [],
                 i;
 
+            if (!urlFixRules) {
+                urlFixRules = String(grunt.file.read('.urlfixrules', { encoding: 'utf8' }));
+                if (!urlFixRules) {
+                    ringHelper.log('error', 'can not find .urlfixrules file');
+                    return false;
+                }
+                try {
+                    urlFixRules = JSON.parse(urlFixRules);
+                } catch (err) {
+                    ringHelper.log('error', 'Invalid json in .urlfixrules file');
+                    return false;
+                }
+            }
+
+            searches = urlFixRules.searches;
             // ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
             ringHelper.log('info', 'Task Target', grunt.task.current.nameArgs);
 
             switch (grunt.task.current.nameArgs) {
                 case 'ringci:local':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces.push('https://local.ringid.com', 'https://devmediacloud');
-                        updatedContent = replaceUrlFixes();
-                    } else {
-                        updatedContent = content;
-                    }
+                    replaces = urlFixRules.local;
+                    updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:dev':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces.push('https://dev.ringid.com', 'https://devmediacloud');
-                    } else {
-                        replaces.push('http://dev.ringid.com');
-                    }
+                    replaces = urlFixRules.dev;
                     updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:stage':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces = ['https://pro.ringid.com', 'https://mediacloud'];
-                    } else {
-                        searches.push('http://devmediacloud');
-                        replaces = ['http://pro.ringid.com', 'http://mediacloud'];
-                    }
+                    replaces = urlFixRules.stage;
                     updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:live':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces = ['https://www.ringid.com', 'https://mediacloud'];
-                    } else {
-                        searches.push('http://devmediacloud');
-                        replaces = ['http://www.ringid.com', 'http://mediacloud'];
-                    }
+                    replaces = urlFixRules.live;
                     updatedContent = replaceUrlFixes();
                     break;
                 default:
@@ -135,7 +128,7 @@ function exportTask(grunt) {
                 if (!content) {
                     return content;
                 }
-                ringHelper.log('info', 'searches:' + searches.length, 'replaces:' + replaces.length);
+                ringHelper.log('info', 'searches: ' + searches.length, 'replaces: ' + replaces.length);
 
                 modified = String(content);
                 for (i = 0; i < searches.length; i++) {
