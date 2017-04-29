@@ -27,8 +27,8 @@ function initFunc(grunt) {
             padding,
             modifiedContent = String(content),
             ind,
-            start = content.indexOf(startTag),
-            end = content.indexOf(endTag, start);
+            start = modifiedContent.indexOf(startTag),
+            end = modifiedContent.indexOf(endTag, start);
 
         // log('info', 'linkFiles', 'content length ', content.length);
         log('info', 'linkFiles', 'no of files ', files.length);
@@ -208,6 +208,21 @@ function initFunc(grunt) {
                 grunt.log.writeln(Chalk.bold.cyan(task) + ' ' + Chalk.blue(input) + (output ? ' > ' + Chalk.green(output) : ''));
         }
     }
+    function base54_digits() {
+        return "etnrisouaflchpdvmgybwESxTNCkLAOM_DPHBjFIqRUzWXV$JKQGYZ0516372984";
+    }
 
+    exports.base54 = (function(){
+        var DIGITS = base54_digits();
+        return function(num) {
+            var ret = "", base = 54;
+            do {
+                ret += DIGITS.charAt(num % base);
+                num = Math.floor(num / base);
+                base = 64;
+            } while (num > 0);
+            return ret;
+        };
+    })();
     return exports;
 }

@@ -1,31 +1,68 @@
 {
-  "name": "grunt-ringci",
-  "description": "Custom Build for ringWEB",
-  "version": "0.1.0",
-  "homepage": "https://github.com/dostokhan/grunt-ringci",
-  "author": {
-    "name": "Moniruzzaman Monir",
-    "email": "dostokhan@gmail.com"
+  "_args": [
+    [
+      "grunt-ringci@github:dostokhan/grunt-ringci",
+      "/home/fisherman/projects/ringIDWeb"
+    ]
+  ],
+  "_from": "dostokhan/grunt-ringci",
+  "_id": "grunt-ringci@0.1.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/grunt-ringci",
+  "_phantomChildren": {
+    "ansi-regex": "2.1.1",
+    "commander": "2.9.0",
+    "escape-string-regexp": "1.0.5",
+    "has-ansi": "2.0.0",
+    "ncname": "1.0.0",
+    "no-case": "2.3.1",
+    "relateurl": "0.2.7",
+    "supports-color": "2.0.0",
+    "uglify-to-browserify": "1.0.2",
+    "upper-case": "1.1.3",
+    "yargs": "3.10.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/dostokhan/grunt-ringci.git"
+  "_requested": {
+    "hosted": {
+      "directUrl": "https://raw.githubusercontent.com/dostokhan/grunt-ringci/master/package.json",
+      "gitUrl": "git://github.com/dostokhan/grunt-ringci.git",
+      "httpsUrl": "git+https://github.com/dostokhan/grunt-ringci.git",
+      "shortcut": "github:dostokhan/grunt-ringci",
+      "ssh": "git@github.com:dostokhan/grunt-ringci.git",
+      "sshUrl": "git+ssh://git@github.com/dostokhan/grunt-ringci.git",
+      "type": "github"
+    },
+    "name": "grunt-ringci",
+    "raw": "grunt-ringci@github:dostokhan/grunt-ringci",
+    "rawSpec": "github:dostokhan/grunt-ringci",
+    "scope": null,
+    "spec": "github:dostokhan/grunt-ringci",
+    "type": "hosted"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git://github.com/dostokhan/grunt-ringci.git#db8708f72b60337db44cdb0631d06644fc3a5356",
+  "_shasum": "0e262d16675a2ef003a1a1bea3ae707c21c51d95",
+  "_shrinkwrap": null,
+  "_spec": "grunt-ringci@github:dostokhan/grunt-ringci",
+  "_where": "/home/fisherman/projects/ringIDWeb",
+  "author": {
+    "email": "dostokhan@gmail.com",
+    "name": "Moniruzzaman Monir"
   },
   "bugs": {
     "url": "https://github.com/dostokhan/grunt-ringci/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/dostokhan/grunt-ringci/blob/master/LICENSE-MIT"
-    }
-  ],
-  "engines": {
-    "node": ">= 0.8.0"
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "eslint": "^3.9.0",
+    "html-minifier": "^3.1.0",
+    "uglify-js": "^2.7.4",
+    "util": "^0.10.3"
   },
-  "scripts": {
-    "test": "grunt test"
-  },
+  "description": "Custom Build for ringWEB",
   "devDependencies": {
     "crypto": "0.0.3",
     "grunt": "~0.4.5",
@@ -33,14 +70,30 @@
     "grunt-contrib-jshint": "^0.9.2",
     "grunt-contrib-nodeunit": "^0.3.3"
   },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "gitHead": "db8708f72b60337db44cdb0631d06644fc3a5356",
+  "homepage": "https://github.com/dostokhan/grunt-ringci",
   "keywords": [
     "gruntplugin"
   ],
-  "dependencies": {
-    "chalk": "^1.1.3",
-    "eslint": "^3.9.0",
-    "html-minifier": "^3.1.0",
-    "uglify-js": "^2.7.4",
-    "util": "^0.10.3"
-  }
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/dostokhan/grunt-ringci/blob/master/LICENSE-MIT"
+    }
+  ],
+  "name": "grunt-ringci",
+  "optionalDependencies": {},
+  "readme": "# grunt-ringci\n\n> Custom Build for ringWEB\n\n## Getting Started\nThis plugin requires Grunt `>=0.4.5`\n\nIf you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:\n\n```shell\nnpm install grunt-ringci --save-dev\n```\n\nOnce the plugin has been installed, it may be enabled inside your Gruntfile with this line of JavaScript:\n\n```js\ngrunt.loadNpmTasks('grunt-ringci');\n```\n\n## The \"ringci\" task\n\n### Overview\nIn your project's Gruntfile, add a section named `ringci` to the data object passed into `grunt.initConfig()`.\n\n```js\ngrunt.initConfig({\n  ringci: {\n    options: {\n      // Task-specific options go here.\n    },\n    your_target: {\n      // Target-specific file lists and/or options go here.\n    },\n  },\n});\n```\n\n### Options\n\n#### options.separator\nType: `String`\nDefault value: `',  '`\n\nA string value that is used to do something with whatever.\n\n#### options.punctuation\nType: `String`\nDefault value: `'.'`\n\nA string value that is used to do something else with whatever else.\n\n### Usage Examples\n\n#### Default Options\nIn this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`\n\n```js\ngrunt.initConfig({\n  ringci: {\n    options: {},\n    files: {\n      'dest/default_options': ['src/testing', 'src/123'],\n    },\n  },\n});\n```\n\n#### Custom Options\nIn this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`\n\n```js\ngrunt.initConfig({\n  ringci: {\n    options: {\n      separator: ': ',\n      punctuation: ' !!!',\n    },\n    files: {\n      'dest/default_options': ['src/testing', 'src/123'],\n    },\n  },\n});\n```\n\n## Contributing\nIn lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).\n\n## Release History\n_(Nothing yet)_\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dostokhan/grunt-ringci.git"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "version": "0.1.0"
 }

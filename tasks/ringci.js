@@ -7,6 +7,8 @@
  */
 
 'use strict';
+const vm = require('vm');
+const util = require('util');
 
 module.exports = exportTask;
 
@@ -15,6 +17,272 @@ function exportTask(grunt) {
   // creation: http://gruntjs.com/creating-tasks
 
     grunt.registerMultiTask('ringci', 'Custom Build for ringWEB', ringci);
+    grunt.registerMultiTask('ringlify', 'Encrypt min js', ringlify);
+    var ringHelper = require('./lib/helpers').init(grunt);
+
+    function var_dumb(vars) {
+        ringHelper.log('info', 'vars', util.inspect(vars, false, null));
+    }
+    function ringlify() {
+        var options = this.options({
+                punctuation: '.',
+                separator: ', ',
+            }),
+            i,
+            SCRIPT_FILES = [],
+            files,
+            fPath,
+            content,
+            scriptJs,
+            matches,
+            angular = require('./lib/angular').init(grunt, options),
+            ringlifiedContent,
+            jsPath = 'build/',
+            fnInjectPattern = /(\w+)\.\$inject\s+?=\s\[([\s\S]+?)\]/gm,
+            serviceDefiantionRegex = /RINGLIFY_DEFINITION_START\s(\w+)?([\s\S]*?)RINGLIFY_DEFINITION_END/gm,
+            GLOBAL_MAP = {},
+            temRegString,
+            fullConstantRegex,
+            angularContext;
+
+        files = options.ringlifyFiles.constants;
+        angularContext = new vm.createContext(angular);
+      for (i = 0; i < files.length; i++) {
+          fPath = options.srcPath + '/' + files[i];
+          if (grunt.file.exists(fPath)) {
+            ringHelper.log('info', "File : " , fPath);
+            content = grunt.file.read(fPath, { encoding: 'utf8' });
+            scriptJs = new vm.Script(content);
+            scriptJs.runInContext(angularContext);
+            // var_dumb(angular.angular.constants);
+            ringlifiedContent = processConstant(content, angular.angular.constants, options.ignore);
+            angular.resetMap(GLOBAL_MAP);
+            grunt.file.write(jsPath + files[i], ringlifiedContent);
+            // ringHelper.log('info', "File Content: " , String(content));
+          } else {
+            ringHelper.log('error', "File Not Found : " , fPath);
+          }
+      }
+        // building regex for constant
+        for(var cons in GLOBAL_MAP) {
+        // var cons = 'SystemEvents';
+            if (!GLOBAL_MAP[cons].tokens) {
+                ringHelper.log('warning', "no need to Encrypt",cons + ' : ' +  GLOBAL_MAP[cons]);
+                continue;
+            }
+            // console.log(cons);
+            if (fullConstantRegex) {
+                fullConstantRegex += '|(' + cons;
+            } else {
+                fullConstantRegex = '(' + cons;
+            }
+            fullConstantRegex += '\\.(' + buildRegexFromMAP(GLOBAL_MAP[cons].tokens) + ')';
+            fullConstantRegex += ')';
+            // var_dumb(GLOBAL_MAP[cons]);
+        }
+
+        function buildRegexFromMAP(map) {
+            var r_expression = '';
+
+            for (var key in map) {
+                if (map.hasOwnProperty(key)) {
+                    if (r_expression) {
+                        r_expression += '|';
+                    }
+                    // var_dumb(map[key]);
+                    if (typeof map[key].val === 'object') {
+                        r_expression += '(' + map[key].key;
+                        r_expression += '\\.?(' + buildRegexFromMAP(map[key].val) + ')?)';
+                    } else {
+                        r_expression += map[key].key;
+                    }
+                }
+            }
+            return r_expression;
+        }
+
+        // services process start
+        files = options.ringlifyFiles.services;
+        for (i = 0; i < files.length; i++) {
+          fPath = options.srcPath + '/' + files[i];
+            if (grunt.file.exists(fPath)) {
+                ringHelper.log('info', "File : " , fPath);
+                content = grunt.file.read(fPath, { encoding: 'utf8' });
+                ringlifiedContent = String(content).replace(serviceDefiantionRegex, function replacer(match, arg1, arg2) {
+                    var type1regex =/^\s+(?!\/)(\w+)\s?:\s*\w+/gm;
+                    var cc = 0;
+                    var regexString;
+                    var serviceMap;
+                    if(!GLOBAL_MAP[arg1]) {
+                        GLOBAL_MAP[arg1] = {};
+                    }
+                    serviceMap = GLOBAL_MAP[arg1];
+                    arg2 = arg2.replace(type1regex, function replacetype1(match, arg1, arg2) {
+                        var a,
+                            cname;
+                        cname = ringHelper.base54(cc++)
+                        a = match.replace(arg1, cname);
+                        serviceMap[arg1] = cname;
+                        return a;
+                    });
+                    regexString = arg1;
+                    regexString += '\\.(' + Object.keys(serviceMap).join("|") + ')';
+
+                    serviceMap.pattern = new RegExp(regexString, 'g');
+
+                    // console.log(arg2);
+                    return arg2;
+                });
+
+
+                // ringHelper.log('info', "File Content: " , ringlifiedContent);
+                console.log(jsPath + files[i]);
+                // var_dumb(GLOBAL_MAP);
+                grunt.file.write(jsPath + files[i], ringlifiedContent);
+                // var_dumb(matches[1]);
+            }
+        }
+
+        fPath = 'app/shared/models/ringfeed.map.factory.js';
+        fPath = options.srcPath + '/' + fPath;
+        if (grunt.file.exists(fPath)) {
+            ringHelper.log('info', 'Testing', fPath);
+            content = grunt.file.read(fPath, { encoding: 'utf8' });
+            ringlifiedContent = String(content).replace(new RegExp(fullConstantRegex, 'g'), function(match, arg1, arg2, arg3, arg4){
+                var tokens = match.split('.'),
+                    replaceString,
+                    tempMapS,
+                    serviceName = tokens[0];
+                replaceString = serviceName;
+                tempMapS = GLOBAL_MAP[serviceName].tokens;
+                if (tempMapS) {
+
+                    console.log("service Found", serviceName, match);
+                    for (var i = 1; i < tokens.length; i++) {
+                        if (tempMapS) {
+                            replaceString += '.' + tempMapS[tokens[i]].cname;
+                        }
+                        tempMapS = tempMapS[tokens[i]].val;
+                    }
+                } else {
+                    ringHelper.log('warn', 'service not found' ,serviceName);
+                }
+
+                console.log("---------------");
+                return replaceString;
+            });
+            grunt.file.write(jsPath + fPath, ringlifiedContent);
+
+        } else {
+            ringHelper.log("warn", 'Not Found', fPath);
+        }
+
+
+
+    }
+
+
+    function processConstant(content, constants, ignore) {
+        var i = 0,
+            cache,
+            r_content,
+            cons_var,
+            consName,
+            value,
+            mangle,
+            eachProp,
+            properties;
+
+
+        r_content = 'angular.module(\'ringid.config\')\n';
+        for(cons_var in constants) {
+            // for each  constant defined in a file
+            if (constants.hasOwnProperty(cons_var)) {
+                // listing the value properties
+                    mangle = ignore.constants.indexOf(cons_var) === -1;
+                    r_content += getConstantProperties(cons_var, constants[cons_var], mangle);
+                    /* constants[cons_var].properties = properties; */
+                    // var_dumb(constants[cons_var].properties);
+                    // for(consName in properties) {
+                        // eachProp = properties[consName];
+                        // if (typeof eachProp.val !== 'object') {
+                            // r_content += eachProp.cname + ': \'' + eachProp.val + '\',\n';
+                        // } else {
+
+                        // }
+                    /* } */
+            }
+        }
+        r_content += ';';
+        return r_content;
+
+        // takes consvar name and its value and build as key value pare string returns string and
+
+
+        function getConstantProperties(cons_var, constant_v, mangle) {
+            var i,
+                level = 1,
+                r_content = '',
+                tempToken,
+                tokens = {};
+
+            if (typeof constant_v === 'object') {
+                r_content += '.constant(\'' + cons_var + '\', {\n';
+                r_content += processConstant(constant_v, level, tokens);
+                constant_v.tokens = tokens;
+                r_content += '})';
+            } else {
+                r_content += '.constant(\'' + cons_var + '\','
+                if (typeof constant_v === 'string') {
+                    r_content += '\'' + constant_v + '\')';
+                } else {
+                    r_content += constant_v + ')';
+                }
+            }
+            function processConstant(constant_value, lvl, tokens) {
+                var cname_count = 0, // cname for base54 char juice
+                    r_content = "",
+                    key;
+                tokens = tokens || {};
+
+                for(key in constant_value) {
+                    if (constant_value.hasOwnProperty(key)) {
+                        if (typeof constant_value[key] === 'object') {
+                            // we need to repeat for multilevel encryption
+                            tempToken = {
+                                key: key,
+                                cname: ringHelper.base54(cname_count++),
+                                val: {},
+                                level: lvl
+                            };
+                            tokens[key] = tempToken;
+                            r_content += key + ': { \n'+ processConstant(constant_value[key], lvl + 1, tempToken.val) + '},\n'
+                        } else {
+                            // ringHelper.log('info', key, typeof constant_value[key]);
+                            tempToken = {
+                                key: key,
+                                cname: ringHelper.base54(cname_count++),
+                                val: constant_value[key],
+                                level: lvl
+                            };
+                            tokens[key] = tempToken;
+                            if (typeof tempToken.val === 'string') {
+                                r_content += (mangle ? tempToken.cname : '\''+ tempToken.key +'\'')  + ': \'' + tempToken.val.replace('\'', '\\\'') + '\',\n';
+                            } else {
+                                r_content += (mangle ? tempToken.cname : '\''+ tempToken.key +'\'') + ': ' + tempToken.val + ',\n';
+                            }
+                        }
+                    }
+                }
+                return r_content;
+            // END_FN_ProcessConstant
+            }
+            return r_content;
+        // END_FN_GetConstantProperties
+        }
+// END_FN_PROCESS_CONSTANT
+    }
+
 
     function ringci() {
         var taskSuccess,
@@ -29,18 +297,17 @@ function exportTask(grunt) {
                 punctuation: '.',
                 separator: ', ',
             }),
+            urlFixRules,
             fs = require('fs'),
             Crypto = require('crypto'),
-            Path = require('path'),
+            Path = require('path');
             // cssmin = require('cssmin'),
-            ringHelper = require('./lib/helpers').init(grunt, options);
 
         jsPath = options.minifyScripts === true ? '/js/' : '/js/build/';
         linkStyles = options.minifyStyles === true ? ['css/styles.min.css'] : ['css/styles.css'];
 
 
         ringHelper.log('info', 'TARGET: ', options.target);
-        // fixPlayerUrl();
         // main tasks 4 sets of files to watch for
         // 1. minify partial templates
         taskSuccess = prepareHtml();
@@ -76,51 +343,44 @@ function exportTask(grunt) {
 
         function fixUrls(content) {
             // var playerTemplate = options.publicPath + '/player/embed.html',
-            var searches = ['http://local.ringid.com'],
+            var searches, //  = ['http://local.ringid.com'],
                 updatedContent,
-                replaces = [],
+                replaces, //  = [],
                 i;
 
+            if (!urlFixRules) {
+                urlFixRules = String(grunt.file.read('.urlfixrules', { encoding: 'utf8' }));
+                if (!urlFixRules) {
+                    ringHelper.log('error', 'can not find .urlfixrules file');
+                    return false;
+                }
+                try {
+                    urlFixRules = JSON.parse(urlFixRules);
+                } catch (err) {
+                    ringHelper.log('error', 'Invalid json in .urlfixrules file');
+                    return false;
+                }
+            }
+
+            searches = urlFixRules.searches;
             // ringHelper.log('info', 'MOBILE SITE URL FIX', playerTemplate);
             ringHelper.log('info', 'Task Target', grunt.task.current.nameArgs);
 
             switch (grunt.task.current.nameArgs) {
                 case 'ringci:local':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces.push('https://local.ringid.com', 'https://devmediacloud');
-                        updatedContent = replaceUrlFixes();
-                    } else {
-                        updatedContent = content;
-                    }
+                    replaces = urlFixRules.local;
+                    updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:dev':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces.push('https://dev.ringid.com', 'https://devmediacloud');
-                    } else {
-                        replaces.push('http://dev.ringid.com');
-                    }
+                    replaces = urlFixRules.dev;
                     updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:stage':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces = ['https://pro.ringid.com', 'https://mediacloud'];
-                    } else {
-                        searches.push('http://devmediacloud');
-                        replaces = ['http://pro.ringid.com', 'http://mediacloud'];
-                    }
+                    replaces = urlFixRules.stage;
                     updatedContent = replaceUrlFixes();
                     break;
                 case 'ringci:live':
-                    if (options.protocol === 'ssl') {
-                        searches.push('http://devmediacloud');
-                        replaces = ['https://www.ringid.com', 'https://mediacloud'];
-                    } else {
-                        searches.push('http://devmediacloud');
-                        replaces = ['http://www.ringid.com', 'http://mediacloud'];
-                    }
+                    replaces = urlFixRules.live;
                     updatedContent = replaceUrlFixes();
                     break;
                 default:
@@ -135,7 +395,7 @@ function exportTask(grunt) {
                 if (!content) {
                     return content;
                 }
-                ringHelper.log('info', 'searches:' + searches.length, 'replaces:' + replaces.length);
+                ringHelper.log('info', 'searches: ' + searches.length, 'replaces: ' + replaces.length);
 
                 modified = String(content);
                 for (i = 0; i < searches.length; i++) {
@@ -374,6 +634,13 @@ function exportTask(grunt) {
                 '<!--STYLES-->',
                 '<!--STYLES END-->',
                 '<link rel=\'stylesheet\' type=\'text/css\' href=\'%s\' />');
+
+            if (!modifiedContent) {
+                ringHelper.log('warning', 'linkHtmlCss', 'Failed');
+
+                return templateContent;
+            }
+
             return modifiedContent;
         }
 
