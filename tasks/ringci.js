@@ -23,6 +23,7 @@ function exportTask(grunt) {
     function var_dumb(vars) {
         ringHelper.log('info', 'vars', util.inspect(vars, false, null));
     }
+
     function ringlify() {
         var options = this.options({
                 punctuation: '.',
