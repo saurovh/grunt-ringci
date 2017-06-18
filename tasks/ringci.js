@@ -341,6 +341,8 @@ function exportTask(grunt) {
             taskSuccess = prepareChatWorkers();
         }
 
+        prepareLazyloadModules();
+
 
         function fixUrls(content) {
             // var playerTemplate = options.publicPath + '/player/embed.html',
@@ -1063,6 +1065,30 @@ function exportTask(grunt) {
                 }
             }
             return fileList;
+        }
+
+        function prepareLazyloadModules() {
+            preparePhotoEditor();
+            // .. other modules bellow:
+        }
+
+        function preparePhotoEditor() {
+            var config = options.lazyloadModules.photoEditor,
+                srcDir = config.srcDir,
+                destDir = config.destDir,
+                dest = destDir + '/ring-photo-editor.js',
+                content;
+
+            content = '/* eslint-disable */'
+                + grunt.file.read(srcDir + '/lib/camanJS.js') + '\n\n'
+                + grunt.file.read(srcDir + '/helper/cropper.lib.js') + '\n\n'
+                + grunt.file.read(srcDir + '/helper/textinserter.lib.js') + '\n\n'
+                + grunt.file.read(srcDir + '/photo-editor.controller.js') + '\n\n'
+                + '/* eslint-enable */';
+
+            ringHelper.log('info', 'Processing Photo Editor Files', ' to '+dest);
+            grunt.file.write(dest, content);
+            if (options.minifyScripts) ringHelper.uglify(dest, dest);
         }
 
         // Merge task-specific and/or target-specific options with these defaults.
